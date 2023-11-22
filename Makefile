@@ -9,10 +9,11 @@ PIP ?= pip
 TF ?= terraform
 
 # The deployment name, shared or app
-DEPLOYMENT = shared
+DEPLOYMENT = app
 # The desired count of task in ECS service
 DESIRED_COUNT = 1
-VAR_FILE := $(BASE)/environments/$(ENVIRONMENT).tfvars
+DEPLOYMENT_PATH := $(BASE)/terraform/deployment/$(DEPLOYMENT)
+VAR_FILE := $(BASE)/terraform/environments/$(ENVIRONMENT).tfvars
 
 $(info AWS_ACCOUNT 		= $(AWS_ACCOUNT))
 $(info AWS_PROFILE 		= $(AWS_PROFILE))
@@ -31,9 +32,19 @@ define DEFAULTS
 -var aws_region=$(AWS_REGION) \
 -var environment=$(ENVIRONMENT) \
 -var nickname=$(NICKNAME) \
--var desired_count=$(DESIRED_COUNT) \
 -refresh=true
 endef
+
+# Add app specific variables
+define APP_VARS
+-var state_bucket=$(STATE_BUCKET) \
+-var desired_count=$(DESIRED_COUNT)
+endef
+ 
+ifeq ($(DEPLOYMENT),app)
+$(info Add variables for app)
+override OPTIONS += $(APP_VARS)
+endif
  
 override OPTIONS += $(DEFAULTS)
 
@@ -64,7 +75,7 @@ pre-check:
 
 init: pre-check
 	$(info [*] Init Terrafrom Infra)
-	@cd terraform/deployment/$(DEPLOYMENT) && terraform init -reconfigure \
+	@cd $(DEPLOYMENT_PATH) && terraform init -reconfigure \
 		-backend-config="bucket=$(STATE_BUCKET)" \
 		-backend-config="region=$(AWS_REGION)" \
 		-backend-config="profile=$(AWS_PROFILE)" \
@@ -72,16 +83,16 @@ init: pre-check
 
 plan: init
 	$(info [*] Plan Terrafrom Infra)
-	@cd terraform/deployment/$(DEPLOYMENT) && terraform plan -out tfplan
+	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) -out tfplan
 
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
-	@cd terraform/deployment/$(DEPLOYMENT) && terraform plan -destroy -out tfplan
+	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) -destroy -out tfplan
 
 apply: init
 	$(info [*] Apply Terrafrom Infra)
-	@cd terraform/deployment/$(DEPLOYMENT) && terraform apply tfplan
+	@cd $(DEPLOYMENT_PATH) && terraform apply tfplan
 
 apply-destroy: init
 	$(info [*] Apply Terrafrom Infra - Destroy)
-	@cd terraform/deployment/$(DEPLOYMENT) && terraform apply tfplan
+	@cd $(DEPLOYMENT_PATH) && terraform apply tfplan

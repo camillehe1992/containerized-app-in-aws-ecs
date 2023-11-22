@@ -6,9 +6,9 @@ output "alb" {
 }
 
 output "ecs_task_execution_role_arn" {
-  value = ecs_task_execution_role.role.arn
+  value = module.ecs_task_execution_role.role.arn
 }
 
 output "ecs_task_role_arn" {
-  value = ecs_task_role.role.arn
+  value = module.ecs_task_role.role.arn
 }

@@ -15,6 +15,11 @@ variable "environment" {
   description = "The environment of application"
 }
 
+variable "state_bucket" {
+  type        = string
+  description = "The state bucket name"
+}
+
 variable "nickname" {
   type        = string
   description = "The nickname of application. Must be lowercase without special chars"

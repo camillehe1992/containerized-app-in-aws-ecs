@@ -7,7 +7,7 @@ resource "aws_ecs_task_definition" "this" {
       image              = var.image
       cpu                = var.cpu
       memory             = var.memory
-      execution_role_arn = module.ecs_task_execution_role.role.arn
+      execution_role_arn = data.terraform_remote_state.shared.outputs.ecs_task_execution_role_arn
       portMappings = [
         {
           containerPort = var.container_port
@@ -47,7 +47,7 @@ resource "aws_lb_target_group" "this" {
 
 # https://registry.terraform.io/providers/hashicorp/aws/5.0.0/docs/resources/lb_listener
 resource "aws_lb_listener" "this" {
-  load_balancer_arn = data.load_balancer_arn
+  load_balancer_arn = data.terraform_remote_state.shared.outputs.alb.arn
   port              = "80"
   protocol          = "HTTP"
 

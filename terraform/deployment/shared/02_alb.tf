@@ -1,7 +1,7 @@
 # https://registry.terraform.io/providers/hashicorp/aws/5.0.0/docs/resources/lb
 resource "aws_lb" "this" {
   name               = "${var.nickname}-${var.environment}"
-  internal           = false
+  internal           = true
   load_balancer_type = "application"
   idle_timeout       = 60
   ip_address_type    = "ipv4"
