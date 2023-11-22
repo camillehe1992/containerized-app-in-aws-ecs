@@ -8,7 +8,10 @@ BASE := $(shell /bin/pwd)
 PIP ?= pip
 TF ?= terraform
 
-DEPLOYMENT=shared
+# The deployment name, shared or app
+DEPLOYMENT = shared
+# The desired count of task in ECS service
+DESIRED_COUNT = 1
 VAR_FILE := $(BASE)/environments/$(ENVIRONMENT).tfvars
 
 $(info AWS_ACCOUNT 		= $(AWS_ACCOUNT))
@@ -19,8 +22,7 @@ $(info ENVIRONMENT 		= $(ENVIRONMENT))
 $(info NICKNAME    		= $(NICKNAME))
 $(info DEPLOYMENT 		= $(DEPLOYMENT))
 $(info VAR_FILE 		= $(VAR_FILE))
-
-$(info DESIRED_COUNT	= $(DESIRED_COUNT))
+$(info DESIRED_COUNT 	= $(DESIRED_COUNT))
 
 # Add defaults/common variables for all components
 define DEFAULTS
@@ -62,7 +64,7 @@ pre-check:
 
 init: pre-check
 	$(info [*] Init Terrafrom Infra)
-	@cd terraform/$(DEPLOYMENT) && terraform init -reconfigure \
+	@cd terraform/deployment/$(DEPLOYMENT) && terraform init -reconfigure \
 		-backend-config="bucket=$(STATE_BUCKET)" \
 		-backend-config="region=$(AWS_REGION)" \
 		-backend-config="profile=$(AWS_PROFILE)" \
@@ -70,16 +72,16 @@ init: pre-check
 
 plan: init
 	$(info [*] Plan Terrafrom Infra)
-	@cd terraform/$(DEPLOYMENT) && terraform plan -out tfplan
+	@cd terraform/deployment/$(DEPLOYMENT) && terraform plan -out tfplan
 
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
-	@cd terraform/$(DEPLOYMENT) && terraform plan -destroy -out tfplan
+	@cd terraform/deployment/$(DEPLOYMENT) && terraform plan -destroy -out tfplan
 
 apply: init
 	$(info [*] Apply Terrafrom Infra)
-	@cd terraform/$(DEPLOYMENT) && terraform apply tfplan
+	@cd terraform/deployment/$(DEPLOYMENT) && terraform apply tfplan
 
 apply-destroy: init
 	$(info [*] Apply Terrafrom Infra - Destroy)
-	@cd terraform/$(DEPLOYMENT) && terraform apply tfplan
+	@cd terraform/deployment/$(DEPLOYMENT) && terraform apply tfplan
