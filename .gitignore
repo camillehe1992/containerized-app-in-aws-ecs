@@ -163,4 +163,3 @@ terraform.rc
 **/tfplan
 /**/*.zip
 .DS_Store
-.env

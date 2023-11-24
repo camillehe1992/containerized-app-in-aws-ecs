@@ -50,7 +50,7 @@ variable "memory" {
 
 variable "container_port" {
   type        = number
-  default     = 80
+  default     = 8080
   description = "The port of the container"
 }
 

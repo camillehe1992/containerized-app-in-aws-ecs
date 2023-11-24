@@ -15,7 +15,6 @@ alb_subnet_ids  = ["subnet-04839c488f31e2829", "subnet-08122d3fc6e3ce9b1"]
 
 # App
 image            = "camillehe1992/sample-vue-app:latest"
-container_port   = 8080
 cpu              = 128
 memory           = 128
 ecs_cluster_name = "DEV-APP-ECS-CLUSTER"

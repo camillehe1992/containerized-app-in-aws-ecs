@@ -1,6 +1,7 @@
 # https://registry.terraform.io/providers/hashicorp/aws/5.0.0/docs/resources/ecs_task_definition
 resource "aws_ecs_task_definition" "this" {
   family = "${var.environment}-${var.nickname}"
+  # task_role_arn = data.terraform_remote_state.shared.outputs.ecs_
   container_definitions = jsonencode([
     {
       name               = "${var.environment}-${var.nickname}"
@@ -21,9 +22,6 @@ resource "aws_ecs_task_definition" "this" {
         }
       }
       essential = true
-      healthCheck = {
-        command = ["CMD-SHELL", "curl -f http://localhost${var.health_check} || exit 1"]
-      }
     }
   ])
 
