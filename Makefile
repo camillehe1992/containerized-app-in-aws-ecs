@@ -10,8 +10,6 @@ TF ?= terraform
 
 # The deployment name, shared or app
 DEPLOYMENT = app
-# The desired count of task in ECS service
-DESIRED_COUNT = 1
 DEPLOYMENT_PATH := $(BASE)/terraform/deployment/$(DEPLOYMENT)
 VAR_FILE := $(BASE)/terraform/environments/$(ENVIRONMENT).tfvars
 

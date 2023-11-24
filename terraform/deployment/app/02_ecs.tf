@@ -48,7 +48,7 @@ resource "aws_lb_target_group" "this" {
 # https://registry.terraform.io/providers/hashicorp/aws/5.0.0/docs/resources/lb_listener
 resource "aws_lb_listener" "this" {
   load_balancer_arn = data.terraform_remote_state.shared.outputs.alb.arn
-  port              = "80"
+  port              = 80
   protocol          = "HTTP"
 
   default_action {
