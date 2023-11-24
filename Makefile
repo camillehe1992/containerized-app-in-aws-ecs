@@ -9,7 +9,6 @@ PIP ?= pip
 TF ?= terraform
 
 # The deployment name, shared or app
-DEPLOYMENT = app
 DEPLOYMENT_PATH := $(BASE)/terraform/deployment/$(DEPLOYMENT)
 VAR_FILE := $(BASE)/terraform/environments/$(ENVIRONMENT).tfvars
 
@@ -50,16 +49,12 @@ override OPTIONS += $(DEFAULTS)
 # Convenience Functions to use in Make
 #########################################################################
 environments := dev prod
-check-for-environment: check-for-env = $(if $(filter $(ENVIRONMENT),$(environments)),,$(error Invalid environment: $(ENVIRONMENT). Accepted environments: $(environments)))
+check-for-environment = $(if $(filter $(ENVIRONMENT),$(environments)),,$(error Invalid environment: $(ENVIRONMENT). Accepted environments: $(environments)))
 deployments := shared app
-check-for-deployment: check-for-env = $(if $(filter $(DEPLOYMENT),$(deployments)),,$(error Invalid deployment: $(DEPLOYMENT). Accepted deployments: $(deployments)))
+check-for-deployment = $(if $(filter $(DEPLOYMENT),$(deployments)),,$(error Invalid deployment: $(DEPLOYMENT). Accepted deployments: $(deployments)))
 #########################################################################
 # CICD Make Targets
 #########################################################################
-
-AVAILABLE_ENVS = dev prod
-check-for-env = $(if $(filter $(ENVIRONMENT),$(AVAILABLE_ENVS)),,$(error Invalid environment: $(ENVIRONMENT). Accepted environments: $(AVAILABLE_ENVS)))
-
 lint:
 	$(info [*] Linting terraform)
 	@$(TF) fmt -check -diff -recursive
