@@ -1,19 +1,7 @@
-# A Containerized Vue application that deployed in AWS ECS Cluster
+# Vue 3 + Vite
 
-The repo is used to setup a containerized Vue application in AWS ECS using Terraform.
+This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
-- Techincal Stacks: Vue3, Vite5, Node18, Javascript, Terraform, GitHub Actions, Docker, etc.
-- AWS Services, such as ECS, IAM, Auto Scaling, Network things.
+## Recommended IDE Setup
 
-## Archtecture in AWS
-
-## Project Structure
-
-```bash
-```
-
-## Development
-
-## Deployment
-
-## References
+- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
