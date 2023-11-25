@@ -9,7 +9,7 @@ PIP ?= pip
 TF ?= terraform
 
 # The deployment name, shared or app
-DEPLOYMENT_PATH := $(BASE)/terraform/deployment/$(DEPLOYMENT)
+DEPLOYMENT_PATH := $(BASE)/terraform/deployments/$(DEPLOYMENT)
 VAR_FILE := $(BASE)/terraform/environments/$(ENVIRONMENT).tfvars
 
 $(info AWS_ACCOUNT 		= $(AWS_ACCOUNT))
