@@ -41,7 +41,6 @@ env:
   NICKNAME: strapi
   WORKING_DIRECTORY: terraform/deployments/shared
   DEPLOYMENT: shared
-  TF_FILE_PATH: terraform/environments
   # Project Specific Env Variables
   DESIRED_COUNT: "${{ inputs.desired_count }}"
 
@@ -97,7 +96,7 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           export exitcode=0
-          terraform plan -var-file $TF_FILE_PATH/$ENVIRONMENT.tfvars \
+          terraform plan -var-file ../environments/$ENVIRONMENT.tfvars \
           -var="aws_region=$AWS_REGION" \
           -var="desired_count=$DESIRED_COUNT" \
           -detailed-exitcode -no-color -out tfplan || export exitcode=$?
@@ -117,7 +116,7 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           export exitcode=0
-          terraform plan -var-file $TF_FILE_PATH/$ENVIRONMENT.tfvars \
+          terraform plan -var-file ../environments/$ENVIRONMENT.tfvars \
           -var="aws_region=$AWS_REGION" \
           -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
