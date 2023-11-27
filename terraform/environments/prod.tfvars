@@ -1,9 +1,9 @@
 # General Variables
 tags = {
   environment      = "prod"
-  nickname         = "pokemon"
-  application_name = "pokemon-playground"
-  application_desc = "A RestAPI server for Pokemon playground that deployed in AWS ECS as a containerized application"
+  nickname         = "strapi"
+  application_name = "strapi-playground"
+  application_desc = "A containerized RestAPI server for Strapi project"
   emails           = "group@example.com"
   repo             = "https://github.com/camillehe1992/containerized-app-in-aws-ecs"
 }

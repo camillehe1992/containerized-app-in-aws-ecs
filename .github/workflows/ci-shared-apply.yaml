@@ -100,7 +100,8 @@ jobs:
           echo $TF_VAR_FILE
           terraform plan -var-file $TF_VAR_FILE/$ENVIRONMENT.tfvars \
           -var="aws_region=$AWS_REGION" \
-          -var="desired_count=$DESIRED_COUNT" \
+          -var="environment=$ENVIRONMENT" \
+          -var="nickname=$NICKNAME" \
           -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
@@ -121,6 +122,8 @@ jobs:
           echo $TF_VAR_FILE
           terraform plan -var-file $TF_VAR_FILE/$ENVIRONMENT.tfvars \
           -var="aws_region=$AWS_REGION" \
+          -var="environment=$ENVIRONMENT" \
+          -var="nickname=$NICKNAME" \
           -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
