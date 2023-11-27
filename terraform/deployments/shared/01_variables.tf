@@ -26,6 +26,11 @@ variable "tags" {
 }
 
 # Deployment Specific Variables
+variable "internal" {
+  type        = bool
+  default     = false
+  description = "If the ALB is internal"
+}
 variable "security_groups" {
   type        = list(string)
   description = "The secuirty group ids for ALB"
