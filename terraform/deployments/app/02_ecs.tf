@@ -1,7 +1,7 @@
 # https://registry.terraform.io/providers/hashicorp/aws/5.0.0/docs/resources/ecs_task_definition
 resource "aws_ecs_task_definition" "this" {
   family = "${var.environment}-${var.nickname}"
-  # task_role_arn = data.terraform_remote_state.shared.outputs.ecs_
+  # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#container_definitions
   container_definitions = jsonencode([
     {
       name               = "${var.environment}-${var.nickname}"
@@ -15,10 +15,11 @@ resource "aws_ecs_task_definition" "this" {
         }
       ]
       logConfiguration = {
-        logDriver = "fluentd",
+        logDriver = "awslogs",
         options = {
-          fluentd-address = "unix:///var/run/fluent.sock",
-          tag             = "logs-from-${var.nickname}"
+          awslogs-group         = var.ecs_cluster_name
+          awslogs-region        = data.aws_region.current.name
+          awslogs-stream-prefix = var.nickname
         }
       }
       essential = true
