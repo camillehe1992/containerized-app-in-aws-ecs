@@ -53,7 +53,7 @@ env:
   NICKNAME: strapi
   WORKING_DIRECTORY: terraform/deployments/app
   DEPLOYMENT: app
-  TF_FILE_PATH: terraform/environments
+  TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
   # Project Specific Env Variables
   DESIRED_COUNT: "${{ inputs.desired_count }}"
 
@@ -92,9 +92,9 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           terraform init -reconfigure \
-          -backend-config="bucket=$STATE_BUCKET" \
-          -backend-config="region=$AWS_REGION" \
-          -backend-config="key=$NICKNAME/$ENVIRONMENT/$AWS_REGION/$DEPLOYMENT.tfstate"
+            -backend-config="bucket=$STATE_BUCKET" \
+            -backend-config="region=$AWS_REGION" \
+            -backend-config="key=$NICKNAME/$ENVIRONMENT/$AWS_REGION/$DEPLOYMENT.tfstate"
 
       # Checks that all Terraform configuration files adhere to a canonical format
       # Will fail the build if not
@@ -109,10 +109,12 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           export exitcode=0
-          terraform plan -var-file $TF_FILE_PATH/$ENVIRONMENT.tfvars \
-          -var="aws_region=$AWS_REGION" \
-          -var="desired_count=$DESIRED_COUNT" \
-          -detailed-exitcode -no-color -out tfplan || export exitcode=$?
+          terraform plan -var-file $TF_VAR_FILE \
+            -var="aws_region=$AWS_REGION" \
+            -var="environment=$ENVIRONMENT" \
+            -var="nickname=$NICKNAME" \
+            -var="desired_count=$DESIRED_COUNT" \
+            -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
@@ -129,9 +131,12 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           export exitcode=0
-          terraform plan -var-file $TF_FILE_PATH/$ENVIRONMENT.tfvars \
-          -var="aws_region=$AWS_REGION" \
-          -detailed-exitcode -no-color -out tfplan || export exitcode=$?
+          terraform plan -var-file $TF_VAR_FILE \
+            -var="environment=$ENVIRONMENT" \
+            -var="nickname=$NICKNAME" \
+            -var="desired_count=$DESIRED_COUNT" \
+            -var="aws_region=$AWS_REGION" \
+            -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
