@@ -118,7 +118,7 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           export exitcode=0
-          terraform plan -var-file $TF_VAR_FILE \
+          terraform plan -destroy -var-file $TF_VAR_FILE \
             -var="aws_region=$AWS_REGION" \
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
