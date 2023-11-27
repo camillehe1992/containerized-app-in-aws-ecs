@@ -23,7 +23,7 @@ on:
         options:
           - dev
           - prod
-        default: dev
+        default: prod
         required: true
       destroy:
         description: True to destroy
@@ -113,6 +113,7 @@ jobs:
             -var="aws_region=$AWS_REGION" \
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
+            -var="state_bucket=$STATE_BUCKET" \
             -var="desired_count=$DESIRED_COUNT" \
             -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
@@ -132,10 +133,11 @@ jobs:
         run: |
           export exitcode=0
           terraform plan -var-file $TF_VAR_FILE \
+            -var="aws_region=$AWS_REGION" \
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
+            -var="state_bucket=$STATE_BUCKET" \
             -var="desired_count=$DESIRED_COUNT" \
-            -var="aws_region=$AWS_REGION" \
             -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT

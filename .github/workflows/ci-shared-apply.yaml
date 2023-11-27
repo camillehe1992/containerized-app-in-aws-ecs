@@ -11,7 +11,7 @@ on:
         options:
           - dev
           - prod
-        default: dev
+        default: prod
         required: true
       destroy:
         description: True to destroy
