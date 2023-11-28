@@ -1,4 +1,6 @@
-# 🚀 Getting started with Strapi
+# Build a Strapi Project and Deploy to AWS ECS
+
+## 🚀 Getting started with Strapi
 
 Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
 
@@ -6,7 +8,7 @@ Strapi comes with a full featured [Command Line Interface](https://docs.strapi.i
 
 Start your Strapi application with autoReload enabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-develop)
 
-```
+```bash
 npm run develop
 # or
 yarn develop
@@ -16,7 +18,7 @@ yarn develop
 
 Start your Strapi application with autoReload disabled. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-start)
 
-```
+```bash
 npm run start
 # or
 yarn start
@@ -26,11 +28,34 @@ yarn start
 
 Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-build)
 
-```
+```bash
 npm run build
 # or
 yarn build
 ```
+
+## Build & Publish Docker Image
+
+### `docker build`
+
+Build the docker image from local.
+
+```bash
+docker build \
+  --build-arg NODE_ENV=development \
+  -t strapi \
+  -f Dockerfile.dev .
+```
+
+### `docker run`
+
+Test the docker image by creating a container, and run it from local.
+
+```bash
+docker run --name my-strapi --rm -it --env-file=.env -p 1337:1337 strapi
+```
+
+Access container via `http://localhost:1337`
 
 ## ⚙️ Deployment
 
