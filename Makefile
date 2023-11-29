@@ -20,6 +20,7 @@ $(info ENVIRONMENT 		= $(ENVIRONMENT))
 $(info NICKNAME    		= $(NICKNAME))
 $(info DEPLOYMENT 		= $(DEPLOYMENT))
 $(info VAR_FILE 		= $(VAR_FILE))
+$(info IMAGE 			= $(IMAGE))
 $(info DESIRED_COUNT 	= $(DESIRED_COUNT))
 
 # Add defaults/common variables for all components
@@ -35,12 +36,13 @@ endef
 # Add app specific variables
 define APP_VARS
 -var state_bucket=$(STATE_BUCKET) \
+-var image=$(IMAGE) \
 -var desired_count=$(DESIRED_COUNT) \
 -var app_keys=$(APP_KEYS) \
 -var api_token_salt=$(API_TOKEN_SALT) \
 -var admin_jwt_secret=$(ADMIN_JWT_SECRET) \
 -var transfer_token_salt=$(TRANSFER_TOKEN_SALT) \
--var jwt_secret=$(JWT_SECRET) \
+-var jwt_secret=$(JWT_SECRET)
 endef
  
 ifeq ($(DEPLOYMENT),app)

@@ -54,9 +54,16 @@ env:
   WORKING_DIRECTORY: terraform/deployments/app
   DEPLOYMENT: app
   TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
-  # Project Specific Env Variables
-  IMAGE_NAME: ${{ github.repository }}:main
+  # Terraform Specific Env Variables
+  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_TAG: ${{ github.ref_name }}
   DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
+  # Strapi Specific Env Variables
+  APP_KEYS: "${{ secrets.APP_KEYS }}"
+  API_TOKEN_SALT: "${{ secrets.API_TOKEN_SALT }}"
+  ADMIN_JWT_SECRET: "${{ secrets.ADMIN_JWT_SECRET }}"
+  TRANSFER_TOKEN_SALT: "${{ secrets.TRANSFER_TOKEN_SALT }}"
+  JWT_SECRET: "${{ secrets.JWT_SECRET }}"
 
 jobs:
   terraform-plan:
@@ -115,8 +122,13 @@ jobs:
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
             -var="state_bucket=$STATE_BUCKET" \
-            -var="image=$IMAGE_NAME" \
+            -var="image=$IMAGE_NAME:$IMAGE_TAG" \
             -var="desired_count=$DESIRED_COUNT" \
+            -var="app_keys=$APP_KEYS" \
+            -var="api_token_salt=$API_TOKEN_SALT" \
+            -var="admin_jwt_secret=$ADMIN_JWT_SECRET" \
+            -var="transfer_token_salt=$TRANSFER_TOKEN_SALT" \
+            -var="jwt_secret=$JWT_SECRET" \
             -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
