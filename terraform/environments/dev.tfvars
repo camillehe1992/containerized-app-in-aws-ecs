@@ -16,4 +16,5 @@ alb_subnet_ids  = ["subnet-04839c488f31e2829", "subnet-08122d3fc6e3ce9b1"]
 # App
 ecs_cluster_name = "DEV-APP-ECS-CLUSTER"
 vpc_id           = "vpc-06c47d9bb120348df"
+container_port   = 1337
 
