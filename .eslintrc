@@ -1,5 +1,5 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "extends": "eslint:recommended",
   "env": {
     "commonjs": true,
@@ -12,6 +12,10 @@
       "experimentalObjectRestSpread": true,
       "jsx": false
     },
+    "requireConfigFile": false,
+    "babelOptions": {
+      "presets": [ "@babel/preset-react" ]
+    },
     "sourceType": "module"
   },
   "globals": {
@@ -21,7 +25,7 @@
     "indent": ["error", 2, { "SwitchCase": 1 }],
     "linebreak-style": ["error", "unix"],
     "no-console": 0,
-    "quotes": ["error", "single"],
+    "quotes": ["error", "double"],
     "semi": ["error", "always"]
   }
 }

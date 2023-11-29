@@ -55,6 +55,7 @@ env:
   DEPLOYMENT: app
   TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
   # Project Specific Env Variables
+  IMAGE_NAME: ${{ github.repository }}:main
   DESIRED_COUNT: "${{ inputs.desired_count }}"
 
 jobs:
@@ -114,6 +115,7 @@ jobs:
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
             -var="state_bucket=$STATE_BUCKET" \
+            -var="image=$IMAGE_NAME" \
             -var="desired_count=$DESIRED_COUNT" \
             -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
