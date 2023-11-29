@@ -99,3 +99,40 @@ variable "cpu_utilization_target_value" {
   default     = 75
   description = "The target percentage of the ECS service CPU utilization"
 }
+
+# Container Environment Variables
+variable "app_keys" {
+  type        = string
+  description = "The APP keys of Strapi application"
+}
+
+variable "api_token_salt" {
+  type        = string
+  description = "The API token slat of Strapi application"
+}
+
+variable "admin_jwt_secret" {
+  type        = string
+  description = "The Admin jwt secret of Strapi application"
+}
+
+variable "transfer_token_salt" {
+  description = "The transfer token salt of Strapi application"
+}
+
+variable "database_client" {
+  type        = string
+  default     = "mysql"
+  description = "The database client of Strapi application"
+}
+
+variable "database_filename" {
+  type        = string
+  default     = ".tmp/data.db"
+  description = "The database filename of Strapi application"
+}
+
+variable "jwt_secret" {
+  type        = string
+  description = "The jwt secret of Strapi application"
+}

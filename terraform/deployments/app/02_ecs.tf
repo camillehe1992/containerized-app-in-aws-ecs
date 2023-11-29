@@ -22,6 +22,36 @@ resource "aws_ecs_task_definition" "this" {
           awslogs-stream-prefix = var.nickname
         }
       }
+      environment = [
+        {
+          name  = "APP_KEYS"
+          value = var.app_keys
+        },
+        {
+          name  = "API_TOKEN_SALT"
+          value = var.api_token_salt
+        },
+        {
+          name  = "ADMIN_JWT_SECRET"
+          value = var.admin_jwt_secret
+        },
+        {
+          name  = "TRANSFER_TOKEN_SALT"
+          value = var.transfer_token_salt
+        },
+        {
+          name  = "DATABASE_CLIENT"
+          value = var.database_client
+        },
+        {
+          name  = "DATABASE_FILENAME"
+          value = var.database_filename
+        },
+        {
+          name  = "JWT_SECRET"
+          value = var.jwt_secret
+        },
+      ]
       essential = true
     }
   ])
