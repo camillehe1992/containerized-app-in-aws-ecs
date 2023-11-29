@@ -45,7 +45,9 @@ jobs:
 
       # ESLint and Prettier must be in `package.json`
       - name: Install Node.js Dependencies
-        run: npm ci
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: install
 
       - name: Run linters
         uses: wearerequired/lint-action@v2
@@ -54,7 +56,9 @@ jobs:
           prettier: true
 
       - name: Run Unit Test (Jest)
-        run: npm test
+        uses: borales/actions-yarn@v4
+        with:
+          cmd: test
 
       # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
       - name: Log in to the Container registry
