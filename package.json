@@ -12,9 +12,9 @@
     "eslint": "eslint .",
     "lint": "prettier --check .",
     "format": "prettier --write .",
-    "test": "jest --forceExit --detectOpenHandles",
+    "test": "jest --forceExit --detectOpenHandles --passWithNoTests",
     "coverage": "jest --coverage --forceExit --detectOpenHandles",
-    "postinstall": "husky install"
+    "prepare": "husky install"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "4.15.4",
@@ -69,17 +69,5 @@
         "statements": 70
       }
     }
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*": [
-      "eslint --fix",
-      "prettier --write",
-      "git add"
-    ]
   }
 }
