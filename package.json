@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "test": "jest --forceExit --detectOpenHandles",
     "coverage": "jest --coverage --forceExit --detectOpenHandles",
-    "prepare": "husky install"
+    "postinstall": "husky install"
   },
   "dependencies": {
     "@strapi/plugin-cloud": "4.15.4",
