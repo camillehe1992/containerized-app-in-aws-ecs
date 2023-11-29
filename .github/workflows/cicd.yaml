@@ -6,24 +6,69 @@ on:
     branches:
       - release
       - main
+  workflow_dispatch:
+    branches:
+      - main
+    inputs:
+      environment:
+        description: Environment to run agains
+        type: choice
+        options:
+          - dev
+          - prod
+        default: prod
+        required: true
+
+run-name: ${{ format('Deploy to {0}', inputs.environment) }}
 
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  # Common Env Variables
+  AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+  AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+  AWS_ACCOUNT: "${{ vars.AWS_ACCOUNT }}"
+  AWS_REGION: "${{ vars.AWS_REGION }}"
+  STATE_BUCKET: "${{ vars.STATE_BUCKET }}"
+  ENVIRONMENT: "${{ inputs.environment }}"
+  NICKNAME: strapi
+  WORKING_DIRECTORY: terraform/deployments/app
+  DEPLOYMENT: app
+  TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
+  # Project Specific Env Variables
+  DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
-  build-and-push-image:
+  continuous-integration:
+    name: Continuous Integration
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
       contents: read
       packages: write
-      #
+
     steps:
-      - name: Checkout repository
+      - name: Check out Git repository
         uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18
+
+      # ESLint and Prettier must be in `package.json`
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          eslint: true
+          prettier: true
+
       # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
@@ -48,3 +93,83 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+  deployment:
+    name: Deploy to AWS
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      #this is needed since we are running terraform with read-only permissions
+      ARM_SKIP_PROVIDER_REGISTRATION: true
+    outputs:
+      tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install the latest version of the Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          terraform init -reconfigure \
+            -backend-config="bucket=$STATE_BUCKET" \
+            -backend-config="region=$AWS_REGION" \
+            -backend-config="key=$NICKNAME/$ENVIRONMENT/$AWS_REGION/$DEPLOYMENT.tfstate"
+
+      # Checks that all Terraform configuration files adhere to a canonical format
+      # Will fail the build if not
+      - name: Terraform Format
+        run: terraform fmt -check
+
+      # Generates an execution plan for Terraform
+      # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
+      - name: Terraform Plan
+        id: tf-plan
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          export exitcode=0
+          terraform plan -var-file $TF_VAR_FILE  \
+            -var="aws_region=$AWS_REGION" \
+            -var="environment=$ENVIRONMENT" \
+            -var="nickname=$NICKNAME" \
+            -var="state_bucket=$STATE_BUCKET" \
+            -var="image=$IMAGE_NAME:main" \
+            -var="desired_count=$DESIRED_COUNT" \
+            -detailed-exitcode -no-color -out tfplan || export exitcode=$?
+
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+
+          if [ $exitcode -eq 1 ]; then
+            echo Terraform Plan Failed!
+            exit 1
+          else 
+            exit 0
+          fi
+
+      # Save plan to artifacts
+      - name: Publish Terraform Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan
+          path: ${{ env.WORKING_DIRECTORY }}/tfplan
+
+      # Terraform Apply
+      - name: Terraform Apply
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: terraform apply -auto-approve tfplan
