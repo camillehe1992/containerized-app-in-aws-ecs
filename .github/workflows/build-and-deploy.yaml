@@ -26,11 +26,11 @@ env:
   # Terraform Specific Env Variables
   DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
   # Strapi Specific Env Variables
-  APP_KEYS: "${{ vars.APP_KEYS }}"
-  API_TOKEN_SALT: "${{ vars.API_TOKEN_SALT }}"
-  ADMIN_JWT_SECRET: "${{ vars.ADMIN_JWT_SECRET }}"
-  TRANSFER_TOKEN_SALT: "${{ vars.TRANSFER_TOKEN_SALT }}"
-  JWT_SECRET: "${{ vars.JWT_SECRET }}"
+  APP_KEYS: "${{ secrets.APP_KEYS }}"
+  API_TOKEN_SALT: "${{ secrets.API_TOKEN_SALT }}"
+  ADMIN_JWT_SECRET: "${{ secrets.ADMIN_JWT_SECRET }}"
+  TRANSFER_TOKEN_SALT: "${{ secrets.TRANSFER_TOKEN_SALT }}"
+  JWT_SECRET: "${{ secrets.JWT_SECRET }}"
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:

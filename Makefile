@@ -35,7 +35,12 @@ endef
 # Add app specific variables
 define APP_VARS
 -var state_bucket=$(STATE_BUCKET) \
--var desired_count=$(DESIRED_COUNT)
+-var desired_count=$(DESIRED_COUNT) \
+-var app_keys=$(APP_KEYS) \
+-var api_token_salt=$(API_TOKEN_SALT) \
+-var admin_jwt_secret=$(ADMIN_JWT_SECRET) \
+-var transfer_token_salt=$(TRANSFER_TOKEN_SALT) \
+-var jwt_secret=$(JWT_SECRET) \
 endef
  
 ifeq ($(DEPLOYMENT),app)
