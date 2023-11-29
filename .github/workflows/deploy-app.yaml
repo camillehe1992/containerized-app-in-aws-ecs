@@ -1,10 +1,22 @@
-name: Shared Plan/Apply
+name: App Plan/Apply
 
 on:
   workflow_dispatch:
     branches:
       - main
     inputs:
+      desired_count:
+        description: The desired task count
+        type: choice
+        options:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+        default: 1
+        required: true
       environment:
         description: Environment to run agains
         type: choice
@@ -24,7 +36,7 @@ on:
         default: false
         type: boolean
 
-run-name: ${{ format('Deploy to {0} (destroy = {1})', inputs.environment, inputs.destroy) }}
+run-name: ${{ format('Deploy to {0} with desired count {1} (destroy = {2})', inputs.environment, inputs.desired_count, inputs.destroy) }}
 
 permissions:
   contents: read
@@ -39,11 +51,12 @@ env:
   STATE_BUCKET: "${{ vars.STATE_BUCKET }}"
   ENVIRONMENT: "${{ inputs.environment }}"
   NICKNAME: strapi
-  WORKING_DIRECTORY: terraform/deployments/shared
-  DEPLOYMENT: shared
+  WORKING_DIRECTORY: terraform/deployments/app
+  DEPLOYMENT: app
   TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
   # Project Specific Env Variables
-  DESIRED_COUNT: "${{ inputs.desired_count }}"
+  IMAGE_NAME: ${{ github.repository }}:main
+  DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
 
 jobs:
   terraform-plan:
@@ -59,7 +72,7 @@ jobs:
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Install the latest version of the Terraform CLI
       - name: Setup Terraform
@@ -97,10 +110,13 @@ jobs:
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: |
           export exitcode=0
-          terraform plan -var-file $TF_VAR_FILE \
+          terraform plan -var-file $TF_VAR_FILE  \
             -var="aws_region=$AWS_REGION" \
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
+            -var="state_bucket=$STATE_BUCKET" \
+            -var="image=$IMAGE_NAME" \
+            -var="desired_count=$DESIRED_COUNT" \
             -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
@@ -122,6 +138,8 @@ jobs:
             -var="aws_region=$AWS_REGION" \
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
+            -var="state_bucket=$STATE_BUCKET" \
+            -var="desired_count=$DESIRED_COUNT" \
             -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
@@ -175,7 +193,7 @@ jobs:
     steps:
       # Checkout the repository to the GitHub Actions runner
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
