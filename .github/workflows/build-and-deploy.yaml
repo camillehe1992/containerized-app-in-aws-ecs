@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
 env:
   REGISTRY: ghcr.io
@@ -33,6 +36,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      checks: write
 
     steps:
       - name: Checkout
