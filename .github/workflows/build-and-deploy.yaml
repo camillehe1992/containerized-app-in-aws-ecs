@@ -106,7 +106,7 @@ jobs:
           context: .
           file: ./Dockerfile.prod
           push: true
-          tags: ${{ needs.build-and-publish.outputs.gitVersion }}
+          tags: ${{ steps.tag-version.outputs.new_version }}
           labels: ${{ steps.meta.outputs.labels }}
 
   terraform-plan:
