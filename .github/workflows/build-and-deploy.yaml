@@ -110,6 +110,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          platforms: linux/amd64,linux/arm64
+          cache-to: type=local,src=/tmp/.buildx-cache
+          cache-from: type=local,src=/tmp/.buildx-cache
           file: ./Dockerfile.prod
           push: true
           tags: ${{ steps.tag-version.outputs.new_version }}
