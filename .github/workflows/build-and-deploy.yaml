@@ -111,8 +111,8 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          cache-to: type=local,src=/tmp/.buildx-cache
-          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-from: type=registry,ref=user/app:buildcache
+          cache-to: type=registry,ref=user/app:buildcache,mode=max
           file: ./Dockerfile.prod
           push: true
           tags: ${{ steps.tag-version.outputs.new_version }}
