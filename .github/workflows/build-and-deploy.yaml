@@ -30,6 +30,9 @@ env:
   ADMIN_JWT_SECRET: "${{ secrets.ADMIN_JWT_SECRET }}"
   TRANSFER_TOKEN_SALT: "${{ secrets.TRANSFER_TOKEN_SALT }}"
   JWT_SECRET: "${{ secrets.JWT_SECRET }}"
+  DATABASE_HOST: "${{ vars.DATABASE_HOST }}"
+  DATABASE_USERNAME: "${{ vars.DATABASE_USERNAME }}"
+  DATABASE_PASSWORD: "${{ secrets.DATABASE_PASSWORD }}"
 
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
@@ -111,8 +114,8 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAME }}:${{ steps.tag-version.outputs.new_version }}
           labels: ${{ steps.meta.outputs.labels }}
-          # cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:0.1.0
-          # cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:0.1.0,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   terraform-plan:
     name: Terraform Plan
@@ -178,6 +181,9 @@ jobs:
             -var="admin_jwt_secret=$ADMIN_JWT_SECRET" \
             -var="transfer_token_salt=$TRANSFER_TOKEN_SALT" \
             -var="jwt_secret=$JWT_SECRET" \
+            -var="database_host=$DATABASE_HOST" \
+            -var="database_username=$DATABASE_NAME" \
+            -var="database_password=$DATABASE_PASSWORD" \
             -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT

@@ -51,6 +51,18 @@ resource "aws_ecs_task_definition" "this" {
           name  = "JWT_SECRET"
           value = var.jwt_secret
         },
+        {
+          name  = "DATABASE_HOST",
+          value = var.database_host
+        },
+        {
+          name  = "DATABASE_USERNAME",
+          value = var.database_username
+        },
+        {
+          name  = "DATABASE_PASSWORD",
+          value = var.database_password
+        }
       ]
       essential = true
     }

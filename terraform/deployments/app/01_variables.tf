@@ -136,3 +136,18 @@ variable "jwt_secret" {
   type        = string
   description = "The jwt secret of Strapi application"
 }
+
+variable "database_host" {
+  type        = string
+  description = "The host of database"
+}
+
+variable "database_username" {
+  type        = string
+  description = "The username of database"
+}
+
+variable "database_password" {
+  type        = string
+  description = "The password of database"
+}
