@@ -44,10 +44,6 @@ resource "aws_ecs_task_definition" "this" {
           value = var.database_client
         },
         {
-          name  = "DATABASE_FILENAME"
-          value = var.database_filename
-        },
-        {
           name  = "JWT_SECRET"
           value = var.jwt_secret
         },

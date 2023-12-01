@@ -126,12 +126,6 @@ variable "database_client" {
   description = "The database client of Strapi application"
 }
 
-variable "database_filename" {
-  type        = string
-  default     = ".tmp/data.db"
-  description = "The database filename of Strapi application"
-}
-
 variable "jwt_secret" {
   type        = string
   description = "The jwt secret of Strapi application"
