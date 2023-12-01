@@ -80,7 +80,8 @@ resource "aws_lb_target_group" "this" {
   target_type = "instance"
 
   health_check {
-    path = var.health_check
+    path    = var.health_check
+    matcher = "200-299"
   }
 
   tags = var.tags

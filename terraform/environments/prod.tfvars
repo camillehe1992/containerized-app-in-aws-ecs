@@ -19,3 +19,4 @@ vpc_id           = "vpc-02fd20cf215e9a54b"
 container_port   = 1337
 cpu              = 256
 memory           = 512
+health_check     = "/_health"
