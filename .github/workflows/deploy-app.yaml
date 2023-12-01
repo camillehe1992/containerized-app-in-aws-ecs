@@ -153,6 +153,9 @@ jobs:
             -var="admin_jwt_secret=$ADMIN_JWT_SECRET" \
             -var="transfer_token_salt=$TRANSFER_TOKEN_SALT" \
             -var="jwt_secret=$JWT_SECRET" \
+            -var="database_host=$DATABASE_HOST" \
+            -var="database_username=$DATABASE_USERNAME" \
+            -var="database_password=$DATABASE_PASSWORD" \
             -detailed-exitcode -no-color -out tfplan || export exitcode=$?
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
