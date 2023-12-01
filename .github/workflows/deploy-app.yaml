@@ -43,10 +43,9 @@ env:
   DEPLOYMENT: app
   TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
   # Terraform Specific Env Variables
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
   CURRENT_GIT_TAG: ${{ github.ref_name }}
   DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
+  IMAGE_NAME: camillehe1992/strapi
   # Strapi Specific Env Variables
   APP_KEYS: "${{ secrets.APP_KEYS }}"
   API_TOKEN_SALT: "${{ secrets.API_TOKEN_SALT }}"
