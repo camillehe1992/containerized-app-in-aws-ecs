@@ -2,8 +2,8 @@ name: Terraform Plan/Apply
 
 on:
   workflow_dispatch:
-    branches:
-      - main
+    tags:
+      - "*"
     inputs:
       environment:
         description: Environment to run agains
