@@ -7,10 +7,11 @@ SHELL := /bin/bash
 BASE := $(shell /bin/pwd)
 PIP ?= pip
 TF ?= terraform
+MAKE ?= make
 
 # The deployment name, shared or app
 DEPLOYMENT_PATH := $(BASE)/terraform/deployments/$(DEPLOYMENT)
-VAR_FILE := $(BASE)/terraform/environments/$(ENVIRONMENT).tfvars
+TF_VAR_FILE := $(BASE)/terraform/environments/$(ENVIRONMENT).tfvars
 
 $(info AWS_ACCOUNT 		= $(AWS_ACCOUNT))
 $(info AWS_PROFILE 		= $(AWS_PROFILE))
@@ -19,13 +20,13 @@ $(info STATE_BUCKET		= $(STATE_BUCKET))
 $(info ENVIRONMENT 		= $(ENVIRONMENT))
 $(info NICKNAME    		= $(NICKNAME))
 $(info DEPLOYMENT 		= $(DEPLOYMENT))
-$(info VAR_FILE 		= $(VAR_FILE))
+$(info TF_VAR_FILE 		= $(TF_VAR_FILE))
 $(info IMAGE 			= $(IMAGE))
 $(info DESIRED_COUNT 	= $(DESIRED_COUNT))
 
 # Add defaults/common variables for all components
 define DEFAULTS
--var-file=$(VAR_FILE) \
+-var-file=$(TF_VAR_FILE) \
 -var aws_profile=$(AWS_PROFILE) \
 -var aws_region=$(AWS_REGION) \
 -var environment=$(ENVIRONMENT) \
@@ -42,7 +43,10 @@ define APP_VARS
 -var api_token_salt=$(API_TOKEN_SALT) \
 -var admin_jwt_secret=$(ADMIN_JWT_SECRET) \
 -var transfer_token_salt=$(TRANSFER_TOKEN_SALT) \
--var jwt_secret=$(JWT_SECRET)
+-var jwt_secret=$(JWT_SECRET) \
+-var database_host=$(DATABASE_HOST) \
+-var database_username=$(DATABASE_USERNAME) \
+-var database_password=$(DATABASE_PASSWORD)
 endef
  
 ifeq ($(DEPLOYMENT),app)
@@ -59,6 +63,7 @@ environments := dev prod
 check-for-environment = $(if $(filter $(ENVIRONMENT),$(environments)),,$(error Invalid environment: $(ENVIRONMENT). Accepted environments: $(environments)))
 deployments := shared app
 check-for-deployment = $(if $(filter $(DEPLOYMENT),$(deployments)),,$(error Invalid deployment: $(DEPLOYMENT). Accepted deployments: $(deployments)))
+
 #########################################################################
 # CICD Make Targets
 #########################################################################
@@ -83,11 +88,11 @@ init: pre-check
 
 plan: init
 	$(info [*] Plan Terrafrom Infra)
-	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) -out tfplan
+	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) -detailed-exitcode -out tfplan || export exitcode=$?
 
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
-	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) -destroy -out tfplan
+	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) -destroy -detailed-exitcode -out tfplan || export exitcode=$?
 
 apply: init
 	$(info [*] Apply Terrafrom Infra)
@@ -96,3 +101,17 @@ apply: init
 apply-destroy: init
 	$(info [*] Apply Terrafrom Infra - Destroy)
 	@cd $(DEPLOYMENT_PATH) && terraform apply tfplan
+
+apply-all: 
+	$(info [*] Apply All Terrafrom Resources)
+	@$(MAKE) DEPLOYMENT=shared plan
+	@$(MAKE) DEPLOYMENT=shared apply
+	@$(MAKE) DEPLOYMENT=app plan
+	@$(MAKE) DEPLOYMENT=app apply
+
+destroy-all: 
+	$(info [*] Apply All Terrafrom Resources)
+	@$(MAKE) DEPLOYMENT=app plan-destroy
+	@$(MAKE) DEPLOYMENT=app apply
+	@$(MAKE) DEPLOYMENT=shared plan-destroy
+	@$(MAKE) DEPLOYMENT=shared apply

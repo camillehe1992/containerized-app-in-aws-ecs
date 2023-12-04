@@ -24,6 +24,14 @@ resource "aws_ecs_task_definition" "this" {
       }
       environment = [
         {
+          name  = "ENVIRONMENT",
+          value = var.environment
+        },
+        {
+          name  = "NICKNAME",
+          value = var.nickname
+        },
+        {
           name  = "APP_KEYS"
           value = var.app_keys
         },

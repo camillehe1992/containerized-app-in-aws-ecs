@@ -1,0 +1,280 @@
+name: Terraform Plan/Apply
+
+on:
+  workflow_dispatch:
+    branches:
+      - main
+    inputs:
+      environment:
+        description: Environment to run agains
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+        required: true
+      force:
+        description: True to force apply
+        required: true
+        default: false
+        type: boolean
+
+run-name: ${{ format('Deploy {0} to {1}', github.ref_name, inputs.environment) }}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  # Common Env Variables
+  AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+  AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+  AWS_ACCOUNT: "${{ vars.AWS_ACCOUNT }}"
+  AWS_REGION: "${{ vars.AWS_REGION }}"
+  STATE_BUCKET: "${{ vars.STATE_BUCKET }}"
+  ENVIRONMENT: "${{ inputs.environment }}"
+  NICKNAME: strapi
+  DEPLOYMENT_PATH: ${{ github.workspace }}/terraform/deployments
+  TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
+  # Terraform Specific Env Variables
+  CURRENT_GIT_TAG: ${{ github.ref_name }}
+  DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
+  IMAGE_NAME: camillehe1992/strapi
+  # Strapi Specific Env Variables
+  APP_KEYS: "${{ secrets.APP_KEYS }}"
+  API_TOKEN_SALT: "${{ secrets.API_TOKEN_SALT }}"
+  ADMIN_JWT_SECRET: "${{ secrets.ADMIN_JWT_SECRET }}"
+  TRANSFER_TOKEN_SALT: "${{ secrets.TRANSFER_TOKEN_SALT }}"
+  JWT_SECRET: "${{ secrets.JWT_SECRET }}"
+  DATABASE_HOST: "${{ vars.DATABASE_HOST }}"
+  DATABASE_USERNAME: "${{ vars.DATABASE_USERNAME }}"
+  DATABASE_PASSWORD: "${{ secrets.DATABASE_PASSWORD }}"
+
+jobs:
+  terraform-plan-shared:
+    name: Terraform Plan Shared
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    env:
+      #this is needed since we are running terraform with read-only permissions
+      ARM_SKIP_PROVIDER_REGISTRATION: true
+    outputs:
+      tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install the latest version of the Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Checks that all Terraform configuration files adhere to a canonical format
+      # Will fail the build if not
+      - name: Terraform Format
+        run: make lint
+
+      # Generates an execution plan for Terraform
+      # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
+      - name: Terraform Init & Plan Destroy
+        id: tf-plan
+        run: |
+          export exitcode=0
+          make DEPLOYMENT=shared plan-destroy
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+
+          if [ $exitcode -eq 1 ]; then
+            echo Terraform Plan Failed!
+            exit 1
+          else 
+            exit 0
+          fi
+
+      # Save plan to artifacts
+      - name: Publish Terraform Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan
+          path: ${{ env.DEPLOYMENT_PATH }}/shared/tfplan
+
+      # Create string output of Terraform Plan
+      - name: Create String Output
+        id: tf-plan-string
+        working-directory: ${{ env.DEPLOYMENT_PATH }}/shared
+        run: |
+          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+
+          delimiter="$(openssl rand -hex 8)"
+          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
+          echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo '```terraform' >> $GITHUB_OUTPUT
+          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
+          echo '```' >> $GITHUB_OUTPUT
+          echo "</details>" >> $GITHUB_OUTPUT
+          echo "${delimiter}" >> $GITHUB_OUTPUT
+
+      # Publish Terraform Plan as task summary
+      - name: Publish Terraform Plan to Task Summary
+        env:
+          SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
+        run: |
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+  terraform-apply-shared:
+    name: Terraform Apply
+    if: ${{ inputs.force == true }} || needs.terraform-plan-shared.outputs.tfplanExitCode == 2
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    needs: [terraform-plan-shared]
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+          terraform_version: ${{ env.TF_VERSION }}
+
+      # Download saved plan from artifacts
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v3
+        with:
+          name: tfplan
+          path: ${{ env.DEPLOYMENT_PATH }}/shared
+
+      # Terraform Apply
+      - name: Terraform Init & Apply
+        run: make DEPLOYMENT=shared apply
+
+  terraform-plan-app:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    needs: [terraform-apply-shared]
+    env:
+      #this is needed since we are running terraform with read-only permissions
+      ARM_SKIP_PROVIDER_REGISTRATION: true
+    outputs:
+      tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install the latest version of the Terraform CLI
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Generates an execution plan for Terraform
+      # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
+      - name: Terraform Init & Plan Destroy
+        id: tf-plan
+        run: |
+          export exitcode=0
+          make DEPLOYMENT=app plan-destroy
+          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
+
+          if [ $exitcode -eq 1 ]; then
+            echo Terraform Plan Failed!
+            exit 1
+          else 
+            exit 0
+          fi
+
+      # Save plan to artifacts
+      - name: Publish Terraform Plan
+        uses: actions/upload-artifact@v3
+        with:
+          name: tfplan
+          path: ${{ env.DEPLOYMENT_PATH }}/app/tfplan
+
+      # Create string output of Terraform Plan
+      - name: Create String Output
+        id: tf-plan-string
+        working-directory: ${{ env.DEPLOYMENT_PATH }}/app
+        run: |
+          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
+
+          delimiter="$(openssl rand -hex 8)"
+          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
+          echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
+          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo '```terraform' >> $GITHUB_OUTPUT
+          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
+          echo '```' >> $GITHUB_OUTPUT
+          echo "</details>" >> $GITHUB_OUTPUT
+          echo "${delimiter}" >> $GITHUB_OUTPUT
+
+      # Publish Terraform Plan as task summary
+      - name: Publish Terraform Plan to Task Summary
+        env:
+          SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
+        run: |
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
+
+  terraform-apply-app:
+    name: Terraform Apply
+    if: ${{ inputs.force == true }} || needs.terraform-plan.outputs.tfplanExitCode == 2
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    needs: [terraform-plan-app]
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+          terraform_version: ${{ env.TF_VERSION }}
+
+      # Download saved plan from artifacts
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v3
+        with:
+          name: tfplan
+          path: ${{ env.DEPLOYMENT_PATH }}/app
+
+      # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Terraform Apply
+      - name: Terraform Init & Apply
+        run: make DEPLOYMENT=app apply
