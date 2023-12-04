@@ -197,9 +197,29 @@ jobs:
       # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
       - name: Terraform Init & Plan Destroy
         id: tf-plan
+        working-directory: ${{ env.DEPLOYMENT_PATH }}/app
         run: |
           export exitcode=0
-          make DEPLOYMENT=app plan-destroy
+          export IMAGE_TAG="${CURRENT_GIT_TAG:1}"
+          export IMAGE=$IMAGE_NAME:$IMAGE_TAG
+
+          terraform plan -destroy -var-file $TF_VAR_FILE  \
+            -var="aws_region=$AWS_REGION" \
+            -var="environment=$ENVIRONMENT" \
+            -var="nickname=$NICKNAME" \
+            -var="state_bucket=$STATE_BUCKET" \
+            -var="image=$IMAGE" \
+            -var="desired_count=$DESIRED_COUNT" \
+            -var="app_keys=$APP_KEYS" \
+            -var="api_token_salt=$API_TOKEN_SALT" \
+            -var="admin_jwt_secret=$ADMIN_JWT_SECRET" \
+            -var="transfer_token_salt=$TRANSFER_TOKEN_SALT" \
+            -var="jwt_secret=$JWT_SECRET" \
+            -var="database_host=$DATABASE_HOST" \
+            -var="database_username=$DATABASE_USERNAME" \
+            -var="database_password=$DATABASE_PASSWORD" \
+            -detailed-exitcode -no-color -out tfplan || export exitcode=$?
+
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
           if [ $exitcode -eq 1 ]; then
