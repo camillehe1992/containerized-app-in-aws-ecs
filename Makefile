@@ -24,6 +24,8 @@ $(info TF_VAR_FILE 		= $(TF_VAR_FILE))
 $(info IMAGE 			= $(IMAGE))
 $(info DESIRED_COUNT 	= $(DESIRED_COUNT))
 
+AWS_PROFILE ?= default
+
 # Add defaults/common variables for all components
 define DEFAULTS
 -var-file=$(TF_VAR_FILE) \
