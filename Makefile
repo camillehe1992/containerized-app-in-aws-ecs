@@ -20,9 +20,10 @@ $(info STATE_BUCKET		= $(STATE_BUCKET))
 $(info ENVIRONMENT 		= $(ENVIRONMENT))
 $(info NICKNAME    		= $(NICKNAME))
 $(info DEPLOYMENT 		= $(DEPLOYMENT))
-$(info TF_VAR_FILE 		= $(TF_VAR_FILE))
 $(info IMAGE 			= $(IMAGE))
 $(info DESIRED_COUNT 	= $(DESIRED_COUNT))
+$(info DEPLOYMENT_PATH 	= $(DEPLOYMENT_PATH))
+$(info TF_VAR_FILE 		= $(TF_VAR_FILE))
 
 # Add defaults/common variables for all components
 define DEFAULTS
