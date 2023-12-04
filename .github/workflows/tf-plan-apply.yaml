@@ -13,13 +13,18 @@ on:
           - prod
         default: dev
         required: true
+      image_tag:
+        description: Docker Image to deploy agains
+        type: string
+        default: 0.3.14
+        required: true
       force:
         description: True to force apply
         required: true
         default: false
         type: boolean
 
-run-name: ${{ format('Deploy {0} to {1}', github.ref_name, inputs.environment) }}
+run-name: ${{ format('Deploy {0} to {1}', inputs.image_tag, inputs.environment) }}
 
 permissions:
   contents: read
@@ -39,7 +44,7 @@ env:
   # Terraform Specific Env Variables
   CURRENT_GIT_TAG: ${{ github.ref_name }}
   DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
-  IMAGE_NAME: camillehe1992/strapi
+  IMAGE: camillehe1992/strapi:${{ inputs.image_tag }}
   # Strapi Specific Env Variables
   APP_KEYS: "${{ secrets.APP_KEYS }}"
   API_TOKEN_SALT: "${{ secrets.API_TOKEN_SALT }}"
@@ -204,9 +209,6 @@ jobs:
         working-directory: ${{ env.DEPLOYMENT_PATH }}/app
         run: |
           export exitcode=0
-          export IMAGE_TAG="${CURRENT_GIT_TAG:1}"
-          export IMAGE=$IMAGE_NAME:$IMAGE_TAG
-
           terraform plan -var-file $TF_VAR_FILE  \
             -var="aws_region=$AWS_REGION" \
             -var="environment=$ENVIRONMENT" \
