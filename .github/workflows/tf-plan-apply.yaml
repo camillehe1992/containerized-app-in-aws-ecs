@@ -42,7 +42,6 @@ env:
   DEPLOYMENT_PATH: ${{ github.workspace }}/terraform/deployments
   TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
   # Terraform Specific Env Variables
-  CURRENT_GIT_TAG: ${{ github.ref_name }}
   DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
   IMAGE: camillehe1992/strapi:${{ inputs.image_tag }}
   # Strapi Specific Env Variables
@@ -292,14 +291,6 @@ jobs:
         with:
           name: tfplan-app
           path: ${{ env.DEPLOYMENT_PATH }}/app
-
-      # Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
 
       # Terraform Apply
       - name: Terraform Init & Apply
