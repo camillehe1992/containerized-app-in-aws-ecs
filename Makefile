@@ -117,8 +117,12 @@ apply-all:
 	@$(MAKE) DEPLOYMENT=app apply
 
 destroy-all: 
-	$(info [*] Apply All Terrafrom Resources)
+	$(info [*] Destroy All Terrafrom Resources)
 	@$(MAKE) DEPLOYMENT=app plan-destroy
 	@$(MAKE) DEPLOYMENT=app apply
 	@$(MAKE) DEPLOYMENT=shared plan-destroy
 	@$(MAKE) DEPLOYMENT=shared apply
+
+destroy:
+	$(info [*] Destroy ....)
+	terraform plan -destroy $(OPTIONS) || export exitcode=$?
