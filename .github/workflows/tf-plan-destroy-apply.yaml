@@ -98,18 +98,17 @@ jobs:
       #       exit 0
       #     fi
 
-      # Terraform Init
-      - name: Terraform Init
-        run: make DEPLOYMENT=app init
+      # # Terraform Init
+      # - name: Terraform Init
+      #   run: make DEPLOYMENT=app init
 
       # Generates an execution plan for Terraform
       # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
       - name: Terraform Init & Plan Destroy
         id: tf-plan
-        working-directory: ${{ env.DEPLOYMENT_PATH }}/app
         run: |
           export exitcode=0
-          make DEPLOYMENT=app destroy
+          make DEPLOYMENT=app plan-destroy
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
           if [ $exitcode -eq 1 ]; then

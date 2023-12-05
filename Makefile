@@ -122,7 +122,3 @@ destroy-all:
 	@$(MAKE) DEPLOYMENT=app apply
 	@$(MAKE) DEPLOYMENT=shared plan-destroy
 	@$(MAKE) DEPLOYMENT=shared apply
-
-destroy:
-	$(info [*] Destroy ....)
-	terraform plan -destroy $(OPTIONS) || export exitcode=$?
