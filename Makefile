@@ -24,7 +24,8 @@ $(info DESIRED_COUNT 	= $(DESIRED_COUNT))
 $(info DEPLOYMENT_PATH 	= $(DEPLOYMENT_PATH))
 $(info TF_VAR_FILE 		= $(TF_VAR_FILE))
 
-define OPTIONS
+# Add defaults/common variables for all components
+define DEFAULTS
 -var-file=$(TF_VAR_FILE) \
 -var aws_profile=$(AWS_PROFILE) \
 -var aws_region=$(AWS_REGION) \
@@ -32,10 +33,7 @@ define OPTIONS
 -var nickname=$(NICKNAME)
 endef
 
-# Add defaults/common variables for all components
-define DEFAULTS
--refresh=true -detailed-exitcode -out tfplan
-endef
+OPTIONS += $(DEFAULTS)
 
 # Add app specific variables
 define APP_VARS
@@ -51,13 +49,19 @@ define APP_VARS
 -var database_username=$(DATABASE_USERNAME) \
 -var database_password=$(DATABASE_PASSWORD)
 endef
+
+define ADDTIONAL
+-refresh=true -detailed-exitcode -out tfplan
+endef
  
 ifeq ($(DEPLOYMENT),app)
 $(info Add variables for app)
-override OPTIONS += $(APP_VARS)
+OPTIONS += $(APP_VARS)
 endif
- 
-override OPTIONS += $(DEFAULTS)
+
+OPTIONS += $(ADDTIONAL)
+
+$(info OPTIONS 		= $(OPTIONS))
 
 #########################################################################
 # Convenience Functions to use in Make
