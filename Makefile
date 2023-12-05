@@ -47,7 +47,7 @@ define APP_VARS
 -var jwt_secret=$(JWT_SECRET) \
 -var database_host=$(DATABASE_HOST) \
 -var database_username=$(DATABASE_USERNAME) \
--var database_password=$(DATABASE_PASSWORD)
+-var database_password=$(DATABASE_PASSWORD) \
 endef
  
 ifeq ($(DEPLOYMENT),app)
@@ -93,7 +93,7 @@ plan: init
 
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
-	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) -destroy -detailed-exitcode -out tfplan || export exitcode=$?
+	@cd $(DEPLOYMENT_PATH) && terraform plan -destroy $(OPTIONS) -detailed-exitcode -out tfplan || export exitcode=$?
 
 apply: init
 	$(info [*] Apply Terrafrom Infra)
