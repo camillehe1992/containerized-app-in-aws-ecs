@@ -84,37 +84,40 @@ jobs:
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # - name: Terraform Init & Plan Destroy
-      #   id: tf-plan
-      #   run: |
-      #     export exitcode=0
-      #     make DEPLOYMENT=app plan-destroy
-      #     echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
-
-      #     if [ $exitcode -eq 1 ]; then
-      #       echo Terraform Plan Failed!
-      #       exit 1
-      #     else
-      #       exit 0
-      #     fi
-
-      # # Terraform Init
-      # - name: Terraform Init
-      #   run: make DEPLOYMENT=app init
+      # Terraform Init
+      - name: Terraform Init
+        run: make DEPLOYMENT=app init
 
       # Generates an execution plan for Terraform
       # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
-      - name: Terraform Init & Plan Destroy
+      - name: Terraform Plan
         id: tf-plan
+        working-directory: ${{ env.DEPLOYMENT_PATH }}/app
         run: |
           export exitcode=0
-          make DEPLOYMENT=app plan-destroy
+          terraform plan -destroy -var-file $TF_VAR_FILE  \
+            -var="aws_region=$AWS_REGION" \
+            -var="environment=$ENVIRONMENT" \
+            -var="nickname=$NICKNAME" \
+            -var="state_bucket=$STATE_BUCKET" \
+            -var="image=$IMAGE" \
+            -var="desired_count=$DESIRED_COUNT" \
+            -var="app_keys=$APP_KEYS" \
+            -var="api_token_salt=$API_TOKEN_SALT" \
+            -var="admin_jwt_secret=$ADMIN_JWT_SECRET" \
+            -var="transfer_token_salt=$TRANSFER_TOKEN_SALT" \
+            -var="jwt_secret=$JWT_SECRET" \
+            -var="database_host=$DATABASE_HOST" \
+            -var="database_username=$DATABASE_USERNAME" \
+            -var="database_password=$DATABASE_PASSWORD" \
+            -detailed-exitcode -no-color -out tfplan || export exitcode=$?
+
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
           if [ $exitcode -eq 1 ]; then
             echo Terraform Plan Failed!
             exit 1
-          else
+          else 
             exit 0
           fi
 
