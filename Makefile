@@ -24,13 +24,16 @@ $(info DESIRED_COUNT 	= $(DESIRED_COUNT))
 $(info DEPLOYMENT_PATH 	= $(DEPLOYMENT_PATH))
 $(info TF_VAR_FILE 		= $(TF_VAR_FILE))
 
-# Add defaults/common variables for all components
-define DEFAULTS
+define OPTIONS
 -var-file=$(TF_VAR_FILE) \
 -var aws_profile=$(AWS_PROFILE) \
 -var aws_region=$(AWS_REGION) \
 -var environment=$(ENVIRONMENT) \
--var nickname=$(NICKNAME) \
+-var nickname=$(NICKNAME)
+endef
+
+# Add defaults/common variables for all components
+define DEFAULTS
 -refresh=true -detailed-exitcode -out tfplan
 endef
 
