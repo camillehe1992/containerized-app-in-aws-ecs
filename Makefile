@@ -9,7 +9,6 @@ TF ?= terraform
 MAKE ?= make
 
 # The deployment name, shared or app
-AWS_PROFILE ?= default
 DEPLOYMENT_PATH := $(BASE)/terraform/deployments/$(DEPLOYMENT)
 TF_VAR_FILE := $(BASE)/terraform/environments/$(ENVIRONMENT).tfvars
 
@@ -32,7 +31,7 @@ define DEFAULTS
 -var aws_region=$(AWS_REGION) \
 -var environment=$(ENVIRONMENT) \
 -var nickname=$(NICKNAME) \
--refresh=true
+-refresh=true -detailed-exitcode -out tfplan
 endef
 
 # Add app specific variables
@@ -47,7 +46,7 @@ define APP_VARS
 -var jwt_secret=$(JWT_SECRET) \
 -var database_host=$(DATABASE_HOST) \
 -var database_username=$(DATABASE_USERNAME) \
--var database_password=$(DATABASE_PASSWORD) \
+-var database_password=$(DATABASE_PASSWORD)
 endef
  
 ifeq ($(DEPLOYMENT),app)
@@ -89,11 +88,11 @@ init: pre-check
 
 plan: init
 	$(info [*] Plan Terrafrom Infra)
-	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) -detailed-exitcode -out tfplan || export exitcode=$?
+	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) || export exitcode=$?
 
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
-	@cd $(DEPLOYMENT_PATH) && terraform plan -destroy $(OPTIONS) -detailed-exitcode -out tfplan || export exitcode=$?
+	@cd $(DEPLOYMENT_PATH) && terraform plan -destroy $(OPTIONS) || export exitcode=$?
 
 apply: init
 	$(info [*] Apply Terrafrom Infra)
