@@ -84,13 +84,17 @@ jobs:
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Terraform Init & Plan
+        id: tf-plan
+        run: make init
+
       # Generates an execution plan for Terraform
       # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
       - name: Terraform Init & Plan
         id: tf-plan
         run: |
           export exitcode=0
-          make plan
+          make init
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 
