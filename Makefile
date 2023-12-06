@@ -74,11 +74,11 @@ init: pre-check
 
 plan: init
 	$(info [*] Plan Terrafrom Infra)
-	@cd $(TF_ROOT_PATH) && terraform plan $(OPTIONS) || export exitcode=$?
+	@cd $(TF_ROOT_PATH) && terraform plan $(OPTIONS)
 
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
-	@cd $(TF_ROOT_PATH) && terraform plan -destroy $(OPTIONS) || export exitcode=$?
+	@cd $(TF_ROOT_PATH) && terraform plan -destroy $(OPTIONS)
 
 apply:
 	$(info [*] Apply Terrafrom Infra)
