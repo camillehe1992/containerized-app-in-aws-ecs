@@ -2,6 +2,22 @@
 
 The document provides the Cloud archtecuture design in AWS and how these AWS resources defined using Terraform.
 
+## Archtecuture Design
+
+The Strapi project archtecuture diagram shows as below.
+
+![arch-diagram](./docs/arch-diagram.png)
+
+Here is the main AWS resources created in the projects:
+
+- ECS Task execution IAM Role
+- ECS Task IAM Role
+- Application Load Balancer
+- ECS Service
+- ECS Task Definition
+- Load Balancer Target Group
+- CloudWatch Logs Groups, Alarms, etc.
+
 ## Project Structure
 
 All Terraform resources are defined in `terraform` directory. The source code structure shows as below. There is a `Makefile` under root directory that defines several targets to execute, which is useful to exeucte terraform CLI from terminal. See [Markfile Tutorial][1] to get more details about `Makefile`.
@@ -120,6 +136,7 @@ STATE_BUCKET=tobemodified           # the S3 bucket name for Terraform state buc
 ENVIRONMENT=dev                     # the target environment (Only used for multiple environments deployment)
 NICKNAME=strapi                     # the nickname of project (Used for tagging and unique AWS resources
 IMAGE=tobemodified                  # the Docker image of Strapi application
+DESIRED_COUNT=1                     # the desired ECS task count you want to launch
 ```
 
 After done, move to next step to execute Terraform CLI via `Makefile` targets.
@@ -130,6 +147,7 @@ make lint
 
 # Init terraform and create a plan, a tfplan file will be generated
 make plan
+# or run make plan-destroy to create a destroy plan
 
 # Apply the tfplan to AWS
 make apply

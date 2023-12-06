@@ -1,5 +1,7 @@
 # Build a Strapi Project and Deploy to AWS ECS
 
+See [README_TF](README_TF.md) for the detail description about Terraform structure.
+
 ## 🚀 Getting started with Strapi
 
 Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.

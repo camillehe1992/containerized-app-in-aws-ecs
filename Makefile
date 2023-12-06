@@ -76,19 +76,11 @@ plan: init
 	$(info [*] Plan Terrafrom Infra)
 	@cd $(TF_ROOT_PATH) && terraform plan $(OPTIONS) || export exitcode=$?
 
-apply:
-	$(info [*] Apply Terrafrom Infra)
-	@cd $(TF_ROOT_PATH) && terraform apply tfplan
-
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
 	@cd $(TF_ROOT_PATH) && terraform plan -destroy $(OPTIONS) || export exitcode=$?
 
-apply-destroy:
-	$(info [*] Apply Terrafrom Infra - Destroy)
+apply:
+	$(info [*] Apply Terrafrom Infra)
 	@cd $(TF_ROOT_PATH) && terraform apply tfplan
 
-publish-image:
-	$(info [*] Build and Publish Docker Image to Docker Hub)
-	# docker buildx create --name multi-arch --platform "linux/arm64,linux/amd64"
-	docker buildx build --platform linux/arm64,linux/amd64 --builder multi-arch -f Dockerfile.prod -t camillehe1992/strapi:latest --push .
