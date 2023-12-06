@@ -15,11 +15,6 @@ variable "environment" {
   description = "The environment of application"
 }
 
-variable "state_bucket" {
-  type        = string
-  description = "The state bucket name"
-}
-
 variable "nickname" {
   type        = string
   description = "The nickname of application. Must be lowercase without special chars"
@@ -31,6 +26,21 @@ variable "tags" {
 }
 
 # Deployment Specific Variables
+variable "internal" {
+  type        = bool
+  default     = false
+  description = "If the ALB is internal"
+}
+variable "security_groups" {
+  type        = list(string)
+  description = "The secuirty group ids for ALB"
+}
+
+variable "alb_subnet_ids" {
+  type        = list(string)
+  description = "The subnet ids for ALB"
+}
+
 variable "image" {
   type        = string
   description = "The image used to start a container"
@@ -67,7 +77,7 @@ variable "ecs_cluster_name" {
 
 variable "desired_count" {
   type        = number
-  default     = 0
+  default     = 1
   description = "Number of instances of the task definition to place and keep running"
 }
 

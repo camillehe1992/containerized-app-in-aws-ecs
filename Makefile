@@ -9,7 +9,7 @@ TF ?= terraform
 MAKE ?= make
 
 # The deployment name, shared or app
-DEPLOYMENT_PATH := $(BASE)/terraform/deployments/$(DEPLOYMENT)
+TF_ROOT_PATH := $(BASE)/terraform
 TF_VAR_FILE := $(BASE)/terraform/environments/$(ENVIRONMENT).tfvars
 
 $(info AWS_ACCOUNT 		= $(AWS_ACCOUNT))
@@ -18,10 +18,8 @@ $(info AWS_REGION  		= $(AWS_REGION))
 $(info STATE_BUCKET		= $(STATE_BUCKET))
 $(info ENVIRONMENT 		= $(ENVIRONMENT))
 $(info NICKNAME    		= $(NICKNAME))
-$(info DEPLOYMENT 		= $(DEPLOYMENT))
 $(info IMAGE 			= $(IMAGE))
-$(info DESIRED_COUNT 	= $(DESIRED_COUNT))
-$(info DEPLOYMENT_PATH 	= $(DEPLOYMENT_PATH))
+$(info DESIRED_COUNT	= $(DESIRED_COUNT))
 $(info TF_VAR_FILE 		= $(TF_VAR_FILE))
 
 # Add defaults/common variables for all components
@@ -30,14 +28,7 @@ define DEFAULTS
 -var aws_profile=$(AWS_PROFILE) \
 -var aws_region=$(AWS_REGION) \
 -var environment=$(ENVIRONMENT) \
--var nickname=$(NICKNAME)
-endef
-
-OPTIONS += $(DEFAULTS)
-
-# Add app specific variables
-define APP_VARS
--var state_bucket=$(STATE_BUCKET) \
+-var nickname=$(NICKNAME) \
 -var image=$(IMAGE) \
 -var desired_count=$(DESIRED_COUNT) \
 -var app_keys=$(APP_KEYS) \
@@ -47,19 +38,11 @@ define APP_VARS
 -var jwt_secret=$(JWT_SECRET) \
 -var database_host=$(DATABASE_HOST) \
 -var database_username=$(DATABASE_USERNAME) \
--var database_password=$(DATABASE_PASSWORD)
-endef
-
-define ADDTIONAL
+-var database_password=$(DATABASE_PASSWORD) \
 -refresh=true -detailed-exitcode -out tfplan
 endef
- 
-ifeq ($(DEPLOYMENT),app)
-$(info Add variables for app)
-OPTIONS += $(APP_VARS)
-endif
 
-OPTIONS += $(ADDTIONAL)
+OPTIONS += $(DEFAULTS)
 
 $(info OPTIONS 		= $(OPTIONS))
 
@@ -68,9 +51,6 @@ $(info OPTIONS 		= $(OPTIONS))
 #########################################################################
 environments := dev prod
 check-for-environment = $(if $(filter $(ENVIRONMENT),$(environments)),,$(error Invalid environment: $(ENVIRONMENT). Accepted environments: $(environments)))
-deployments := shared app
-check-for-deployment = $(if $(filter $(DEPLOYMENT),$(deployments)),,$(error Invalid deployment: $(DEPLOYMENT). Accepted deployments: $(deployments)))
-
 #########################################################################
 # CICD Make Targets
 #########################################################################
@@ -82,12 +62,11 @@ lint:
 pre-check:
 	$(info [*] Check Environment Done)
 	@$(call check-for-environment)
-	@$(call check-for-deployment)
 	@$(info $(shell aws sts get-caller-identity --profile $(AWS_PROFILE)))
 
 init: pre-check
 	$(info [*] Init Terrafrom Infra)
-	@cd $(DEPLOYMENT_PATH) && terraform init -reconfigure \
+	@cd $(TF_ROOT_PATH) && terraform init -reconfigure \
 		-backend-config="bucket=$(STATE_BUCKET)" \
 		-backend-config="region=$(AWS_REGION)" \
 		-backend-config="profile=$(AWS_PROFILE)" \
@@ -95,30 +74,21 @@ init: pre-check
 
 plan: init
 	$(info [*] Plan Terrafrom Infra)
-	@cd $(DEPLOYMENT_PATH) && terraform plan $(OPTIONS) || export exitcode=$?
+	@cd $(TF_ROOT_PATH) && terraform plan $(OPTIONS) || export exitcode=$?
+
+apply:
+	$(info [*] Apply Terrafrom Infra)
+	@cd $(TF_ROOT_PATH) && terraform apply tfplan
 
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
-	@cd $(DEPLOYMENT_PATH) && terraform plan -destroy $(OPTIONS) || export exitcode=$?
+	@cd $(TF_ROOT_PATH) && terraform plan -destroy $(OPTIONS) || export exitcode=$?
 
-apply: init
-	$(info [*] Apply Terrafrom Infra)
-	@cd $(DEPLOYMENT_PATH) && terraform apply tfplan
-
-apply-destroy: init
+apply-destroy:
 	$(info [*] Apply Terrafrom Infra - Destroy)
-	@cd $(DEPLOYMENT_PATH) && terraform apply tfplan
+	@cd $(TF_ROOT_PATH) && terraform apply tfplan
 
-apply-all: 
-	$(info [*] Apply All Terrafrom Resources)
-	@$(MAKE) DEPLOYMENT=shared plan
-	@$(MAKE) DEPLOYMENT=shared apply
-	@$(MAKE) DEPLOYMENT=app plan
-	@$(MAKE) DEPLOYMENT=app apply
-
-destroy-all: 
-	$(info [*] Destroy All Terrafrom Resources)
-	@$(MAKE) DEPLOYMENT=app plan-destroy
-	@$(MAKE) DEPLOYMENT=app apply
-	@$(MAKE) DEPLOYMENT=shared plan-destroy
-	@$(MAKE) DEPLOYMENT=shared apply
+publish-image:
+	$(info [*] Build and Publish Docker Image to Docker Hub)
+	# docker buildx create --name multi-arch --platform "linux/arm64,linux/amd64"
+	docker buildx build --platform linux/arm64,linux/amd64 --builder multi-arch -f Dockerfile.prod -t camillehe1992/strapi:latest --push .

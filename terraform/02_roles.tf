@@ -1,5 +1,5 @@
 module "ecs_task_execution_role" {
-  source = "../../modules/iam"
+  source = "./modules/iam"
 
   environment = var.environment
   tags        = var.tags
@@ -12,7 +12,7 @@ module "ecs_task_execution_role" {
 }
 
 module "ecs_task_role" {
-  source = "../../modules/iam"
+  source = "./modules/iam"
 
   environment = var.environment
   tags        = var.tags

@@ -57,9 +57,37 @@ docker run --name my-strapi --rm -it --env-file=.env -p 1337:1337 strapi
 
 Access container via `http://localhost:1337`
 
+### `docker push`
+
+```bash
+docker login
+# Build docker image for muliple OS
+# create a custom buildx
+docker buildx create --name multi-arch --platform "linux/arm64,linux/amd64"
+docker buildx build --platform linux/arm64,linux/amd64 --builder multi-arch -f Dockerfile.prod -t camillehe1992/strapi:latest --push .
+
+# Or
+docker image tag strapi camillehe1992/strapi:latest
+docker image push camillehe1992/strapi:latest
+```
+
 ## ⚙️ Deployment
 
-Strapi gives you many possible deployment options for your project including [Strapi Cloud](https://cloud.strapi.io). Browse the [deployment section of the documentation](https://docs.strapi.io/dev-docs/deployment) to find the best solution for your use case.
+Deploy Terraform AWS resources into AWS Account using Github Actions workflows.
+
+### 1. Build & Publish
+
+The `build-and-publish.yaml` workflow is used to build Docker image for Strapi application and publish to Docker Hub repository. You can trigger the workflow manually from Github Actions -> `Build and Publish Docker Image` workflow.
+
+See the details of workflow from the YAML file.
+
+### 2. Terraform Plan & Apply
+
+The `tf-plan-apply.yaml` workflow is used to deploy all Terraform resources into AWS account. You can trigger the workflow manually from Github Actions -> `Terraform Plan/Apply` workflow.
+
+### 3. Terraform Plan Destroy & Apply
+
+The `tf-plan-destroy-apply.yaml` workflow is used to destroy all Terraform resources from AWS account. You can trigger the workflow manually from Github Actions -> `Terraform Plan Destroy/Apply` workflow.
 
 ## 📚 Learn more
 
@@ -76,7 +104,3 @@ Feel free to check out the [Strapi GitHub repository](https://github.com/strapi/
 - [Discord](https://discord.strapi.io) - Come chat with the Strapi community including the core team.
 - [Forum](https://forum.strapi.io/) - Place to discuss, ask questions and find answers, show your Strapi project and get feedback or just talk with other Community members.
 - [Awesome Strapi](https://github.com/strapi/awesome-strapi) - A curated list of awesome things related to Strapi.
-
----
-
-<sub>🤫 Psst! [Strapi is hiring](https://strapi.io/careers).</sub>
