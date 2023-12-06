@@ -74,7 +74,22 @@ init: pre-check
 
 plan: init
 	$(info [*] Plan Terrafrom Infra)
-	@cd $(TF_ROOT_PATH) && terraform plan $(OPTIONS)
+	@cd $(TF_ROOT_PATH) && terraform plan -var-file=$(TF_VAR_FILE) \
+		-var aws_profile=$(AWS_PROFILE) \
+		-var aws_region=$(AWS_REGION) \
+		-var environment=$(ENVIRONMENT) \
+		-var nickname=$(NICKNAME) \
+		-var image=$(IMAGE) \
+		-var desired_count=$(DESIRED_COUNT) \
+		-var app_keys=$(APP_KEYS) \
+		-var api_token_salt=$(API_TOKEN_SALT) \
+		-var admin_jwt_secret=$(ADMIN_JWT_SECRET) \
+		-var transfer_token_salt=$(TRANSFER_TOKEN_SALT) \
+		-var jwt_secret=$(JWT_SECRET) \
+		-var database_host=$(DATABASE_HOST) \
+		-var database_username=$(DATABASE_USERNAME) \
+		-var database_password=$(DATABASE_PASSWORD) \
+		-refresh=true -detailed-exitcode -out tfplan
 
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
