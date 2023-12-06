@@ -39,6 +39,7 @@ env:
   STATE_BUCKET: "${{ vars.STATE_BUCKET }}"
   ENVIRONMENT: "${{ inputs.environment }}"
   NICKNAME: strapi
+  TF_ROOT_PATH: ${{ github.workspace }}/terraform
   TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
   # Terraform Specific Env Variables
   DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
@@ -87,7 +88,6 @@ jobs:
       # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
       - name: Terraform Init & Plan
         id: tf-plan
-        working-directory: ${{ env.DEPLOYMENT_PATH }}/app
         run: |
           export exitcode=0
           make plan
@@ -106,12 +106,12 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tfplan
-          path: tfplan
+          path: ${{ env.TF_ROOT_PATH }}/tfplan
 
       # Create string output of Terraform Plan
       - name: Create String Output
         id: tf-plan-string
-        working-directory: ${{ env.DEPLOYMENT_PATH }}/app
+        working-directory: ${{ env.TF_ROOT_PATH }}
         run: |
           TERRAFORM_PLAN=$(terraform show -no-color tfplan)
 
@@ -157,6 +157,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: tfplan
+          path: ${{ env.TF_ROOT_PATH }}
 
       # Terraform Apply
       - name: Terraform Init & Apply
