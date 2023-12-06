@@ -90,7 +90,7 @@ jobs:
         id: tf-plan
         run: |
           export exitcode=0
-          make plan || export exitcode=$?
+          make plan
 
           echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
 

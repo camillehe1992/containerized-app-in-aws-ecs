@@ -20,6 +20,7 @@ $(info ENVIRONMENT 		= $(ENVIRONMENT))
 $(info NICKNAME    		= $(NICKNAME))
 $(info IMAGE 			= $(IMAGE))
 $(info DESIRED_COUNT	= $(DESIRED_COUNT))
+$(info TF_ROOT_PATH 	= $(TF_ROOT_PATH))
 $(info TF_VAR_FILE 		= $(TF_VAR_FILE))
 
 # Add defaults/common variables for all components
@@ -89,7 +90,7 @@ plan: init
 		-var database_host=$(DATABASE_HOST) \
 		-var database_username=$(DATABASE_USERNAME) \
 		-var database_password=$(DATABASE_PASSWORD) \
-		-refresh=true -detailed-exitcode -out tfplan
+		-refresh=true -detailed-exitcode -out tfplan || export exitcode=$?
 
 plan-destroy: init
 	$(info [*] Plan Terrafrom Infra - Destroy)
