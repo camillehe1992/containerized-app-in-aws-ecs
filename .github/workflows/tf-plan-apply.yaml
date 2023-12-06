@@ -84,8 +84,8 @@ jobs:
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Terraform Init & Plan
-        id: tf-plan
+      - name: Terraform Init
+        id: tf-init
         run: make init
 
       # Generates an execution plan for Terraform
