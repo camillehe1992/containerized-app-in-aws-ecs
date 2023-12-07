@@ -100,7 +100,6 @@ jobs:
             -var="aws_region=$AWS_REGION" \
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
-            -var="state_bucket=$STATE_BUCKET" \
             -var="image=$IMAGE" \
             -var="desired_count=$DESIRED_COUNT" \
             -var="app_keys=$APP_KEYS" \
