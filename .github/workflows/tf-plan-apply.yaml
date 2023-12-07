@@ -72,13 +72,13 @@ jobs:
 
       # Install the latest version of the Terraform CLI
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
@@ -96,7 +96,7 @@ jobs:
         working-directory: ${{ env.TF_ROOT_PATH }}
         run: |
           export exitcode=0
-          terraform plan -destroy -var-file $TF_VAR_FILE  \
+          terraform plan -var-file $TF_VAR_FILE  \
             -var="aws_region=$AWS_REGION" \
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
@@ -167,7 +167,7 @@ jobs:
 
       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
           terraform_version: ${{ env.TF_VERSION }}

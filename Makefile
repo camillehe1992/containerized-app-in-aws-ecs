@@ -8,6 +8,12 @@ BASE := $(shell /bin/pwd)
 TF ?= terraform
 MAKE ?= make
 
+ifdef AWS_PROFILE
+AWS_PROFILE := $(AWS_PROFILE)
+else
+AWS_PROFILE := default
+endif
+
 # The deployment name, shared or app
 TF_ROOT_PATH := $(BASE)/terraform
 TF_VAR_FILE := $(BASE)/terraform/environments/$(ENVIRONMENT).tfvars

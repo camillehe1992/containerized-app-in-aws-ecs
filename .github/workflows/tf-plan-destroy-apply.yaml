@@ -1,4 +1,4 @@
-name: Terraform Plan Destroy/Apply
+name: Terraform Destroy/Apply
 
 on:
   workflow_dispatch:
@@ -39,7 +39,7 @@ env:
   STATE_BUCKET: "${{ vars.STATE_BUCKET }}"
   ENVIRONMENT: "${{ inputs.environment }}"
   NICKNAME: strapi
-  DEPLOYMENT_PATH: ${{ github.workspace }}/terraform/deployments
+  TF_ROOT_PATH: ${{ github.workspace }}/terraform
   TF_VAR_FILE: ${{ github.workspace }}/terraform/environments/${{ inputs.environment }}.tfvars
   # Terraform Specific Env Variables
   DESIRED_COUNT: "${{ vars.DESIRED_COUNT }}"
@@ -55,8 +55,8 @@ env:
   DATABASE_PASSWORD: "${{ secrets.DATABASE_PASSWORD }}"
 
 jobs:
-  terraform-plan-app:
-    name: Terraform Plan App
+  terraform-plan:
+    name: Terraform Plan
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     env:
@@ -72,13 +72,13 @@ jobs:
 
       # Install the latest version of the Terraform CLI
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
           terraform_version: ${{ env.TF_VERSION }}
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
@@ -86,20 +86,20 @@ jobs:
 
       # Terraform Init
       - name: Terraform Init
-        run: make DEPLOYMENT=app init
+        id: tf-init
+        run: make init
 
       # Generates an execution plan for Terraform
       # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
       - name: Terraform Plan
         id: tf-plan
-        working-directory: ${{ env.DEPLOYMENT_PATH }}/app
+        working-directory: ${{ env.TF_ROOT_PATH }}
         run: |
           export exitcode=0
           terraform plan -destroy -var-file $TF_VAR_FILE  \
             -var="aws_region=$AWS_REGION" \
             -var="environment=$ENVIRONMENT" \
             -var="nickname=$NICKNAME" \
-            -var="state_bucket=$STATE_BUCKET" \
             -var="image=$IMAGE" \
             -var="desired_count=$DESIRED_COUNT" \
             -var="app_keys=$APP_KEYS" \
@@ -126,12 +126,12 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: tfplan
-          path: ${{ env.DEPLOYMENT_PATH }}/app/tfplan
+          path: ${{ env.TF_ROOT_PATH }}/tfplan
 
       # Create string output of Terraform Plan
       - name: Create String Output
         id: tf-plan-string
-        working-directory: ${{ env.DEPLOYMENT_PATH }}/app
+        working-directory: ${{ env.TF_ROOT_PATH }}
         run: |
           TERRAFORM_PLAN=$(terraform show -no-color tfplan)
 
@@ -153,12 +153,12 @@ jobs:
         run: |
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
 
-  terraform-apply-app:
-    name: Terraform Apply App
+  terraform-apply:
+    name: Terraform Apply
     if: ${{ inputs.force == true }} || needs.terraform-plan.outputs.tfplanExitCode == 2
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    needs: [terraform-plan-app]
+    needs: [terraform-plan]
 
     steps:
       # Checkout the repository to the GitHub Actions runner
@@ -167,7 +167,7 @@ jobs:
 
       # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
           terraform_version: ${{ env.TF_VERSION }}
@@ -177,116 +177,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: tfplan
-          path: ${{ env.DEPLOYMENT_PATH }}/app
+          path: ${{ env.TF_ROOT_PATH }}
 
       # Terraform Apply
       - name: Terraform Init & Apply
-        run: make DEPLOYMENT=app apply
-
-  terraform-plan-shared:
-    name: Terraform Plan Shared
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    needs: [terraform-apply-app]
-    env:
-      #this is needed since we are running terraform with read-only permissions
-      ARM_SKIP_PROVIDER_REGISTRATION: true
-    outputs:
-      tfplanExitCode: ${{ steps.tf-plan.outputs.exitcode }}
-
-    steps:
-      # Checkout the repository to the GitHub Actions runner
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Install the latest version of the Terraform CLI
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_wrapper: false
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      # Generates an execution plan for Terraform
-      # An exit code of 0 indicated no changes, 1 a terraform failure, 2 there are pending changes.
-      - name: Terraform Init & Plan Destroy
-        id: tf-plan
         run: |
-          export exitcode=0
-          make DEPLOYMENT=shared plan-destroy
-          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
-
-          if [ $exitcode -eq 1 ]; then
-            echo Terraform Plan Failed!
-            exit 1
-          else 
-            exit 0
-          fi
-
-      # Save plan to artifacts
-      - name: Publish Terraform Plan
-        uses: actions/upload-artifact@v3
-        with:
-          name: tfplan
-          path: ${{ env.DEPLOYMENT_PATH }}/shared/tfplan
-
-      # Create string output of Terraform Plan
-      - name: Create String Output
-        id: tf-plan-string
-        working-directory: ${{ env.DEPLOYMENT_PATH }}/shared
-        run: |
-          TERRAFORM_PLAN=$(terraform show -no-color tfplan)
-
-          delimiter="$(openssl rand -hex 8)"
-          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
-          echo "## Terraform Plan Output" >> $GITHUB_OUTPUT
-          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo '```terraform' >> $GITHUB_OUTPUT
-          echo "$TERRAFORM_PLAN" >> $GITHUB_OUTPUT
-          echo '```' >> $GITHUB_OUTPUT
-          echo "</details>" >> $GITHUB_OUTPUT
-          echo "${delimiter}" >> $GITHUB_OUTPUT
-
-      # Publish Terraform Plan as task summary
-      - name: Publish Terraform Plan to Task Summary
-        env:
-          SUMMARY: ${{ steps.tf-plan-string.outputs.summary }}
-        run: |
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY
-
-  terraform-apply-shared:
-    name: Terraform Apply Shared
-    if: ${{ inputs.force == true }} || needs.terraform-plan-shared.outputs.tfplanExitCode == 2
-    runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    needs: [terraform-plan-shared]
-
-    steps:
-      # Checkout the repository to the GitHub Actions runner
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
-        with:
-          terraform_wrapper: false
-          terraform_version: ${{ env.TF_VERSION }}
-
-      # Download saved plan from artifacts
-      - name: Download Terraform Plan
-        uses: actions/download-artifact@v3
-        with:
-          name: tfplan
-          path: ${{ env.DEPLOYMENT_PATH }}/shared
-
-      # Terraform Apply
-      - name: Terraform Init & Apply
-        run: make DEPLOYMENT=shared apply
+          make init
+          make apply
