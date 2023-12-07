@@ -181,4 +181,6 @@ jobs:
 
       # Terraform Apply
       - name: Terraform Init & Apply
-        run: make apply
+        run: |
+          make init
+          make apply
