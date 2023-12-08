@@ -2,6 +2,12 @@
 
 See [README_TF](README_TF.md) for the detail description about Terraform structure.
 
+Here are some documentation in DEV Community about the topic:
+
+- [Setup containerized Application in AWS ECS - Part 1/3](https://dev.to/camillehe1992/setup-containerized-application-in-aws-ecs-part-13-2emk)
+- [Setup containerized Application in AWS ECS - Part 2/3](https://dev.to/camillehe1992/setup-containerized-application-in-aws-ecs-part-23-2of3)
+- [Setup containerized Application in AWS ECS - Part 3/3](https://dev.to/camillehe1992/setup-containerized-application-in-aws-ecs-part-33-3fee)
+
 ## 🚀 Getting started with Strapi
 
 Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.

@@ -153,10 +153,8 @@ make plan
 make apply
 ```
 
-## References
-
-- [1]: https://makefiletutorial.com/#getting-started
-- [2]: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
-- [3]: https://github.com/tfutils/tfenv
-- [4]: https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-user.html
-- [5]: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
+[1]: https://makefiletutorial.com/#getting-started
+[2]: https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli
+[3]: https://github.com/tfutils/tfenv
+[4]: https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-user.html
+[5]: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html
